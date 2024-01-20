@@ -1,2 +1,13 @@
 ---
-# vars file for prov__gnome
+
+gnome:
+  groups:
+    - "@base-x"
+    - "@GNOME"
+  packages:
+    - dconf-editor
+    - gnome-extensions-app
+    - gnome-themes-extra
+    - gnome-tweaks
+
+...
