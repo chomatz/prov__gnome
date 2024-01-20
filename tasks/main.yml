@@ -1,2 +1,60 @@
 ---
-# tasks file for prov__gnome
+
+- name: ensure tasks run only on selected os releases
+  block:
+
+    - name: install gnome groups
+      ansible.builtin.package:
+        name: "{{ gnome.groups }}"
+        state: latest
+      register: gnome_groups
+      failed_when:
+        - gnome_groups is failed
+        - "'No group GNOME available' not in gnome_groups.msg"
+
+    - name: display gnome groups installation result
+      ansible.builtin.debug:
+        var: gnome_groups
+        verbosity: 1
+
+    - name: install gnome packages
+      ansible.builtin.package:
+        name: "{{ gnome.packages }}"
+        state: latest
+
+    - name: get the default systemd target
+      ansible.builtin.command:
+        cmd: systemctl get-default
+      changed_when: false
+      register: cmd_systemd_target
+
+    - name: set system to boot into graphical mode
+      ansible.builtin.command:
+        cmd: "systemctl set-default graphical.target"
+      when: cmd_systemd_target.stdout != "graphical.target"
+
+    - name: prevent sleep when laptop lid is closed - on battery
+      ansible.builtin.lineinfile:
+        path: /etc/systemd/logind.conf
+        regexp: '^.*#HandleLidSwitch='
+        line: HandleLidSwitch=ignore
+
+    - name: prevent sleep when laptop lid is closed - on power
+      ansible.builtin.lineinfile:
+        path: /etc/systemd/logind.conf
+        regexp: '^.*#HandleLidSwitchExternalPower='
+        line: HandleLidSwitchExternalPower=ignore
+
+    - name: prevent sleep when laptop lid is closed - when docked
+      ansible.builtin.lineinfile:
+        path: /etc/systemd/logind.conf
+        regexp: '^.*#HandleLidSwitchDocked='
+        line: HandleLidSwitchDocked=ignore
+
+  when: >
+    ansible_distribution == "CentOS" or
+    ansible_distribution == "Fedora" or
+    ansible_distribution == "RedHat" or
+    ansible_distribution == "Rocky"
+
+...
