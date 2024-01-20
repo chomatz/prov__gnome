@@ -1,0 +1,37 @@
+---
+
+- name: ensure tasks run only on selected os releases
+  block:
+
+    - name: gnome customizations
+      ansible.builtin.debug:
+        msg: deploy personalized settings
+        verbosity: 0
+      delegate_to: localhost
+      run_once: true
+
+    - name: prevent sleep when laptop lid is closed - on battery
+      ansible.builtin.lineinfile:
+        path: /etc/systemd/logind.conf
+        regexp: '^.*#HandleLidSwitch='
+        line: HandleLidSwitch=ignore
+
+    - name: prevent sleep when laptop lid is closed - on power
+      ansible.builtin.lineinfile:
+        path: /etc/systemd/logind.conf
+        regexp: '^.*#HandleLidSwitchExternalPower='
+        line: HandleLidSwitchExternalPower=ignore
+
+    - name: prevent sleep when laptop lid is closed - when docked
+      ansible.builtin.lineinfile:
+        path: /etc/systemd/logind.conf
+        regexp: '^.*#HandleLidSwitchDocked='
+        line: HandleLidSwitchDocked=ignore
+
+  when: >
+    ansible_distribution == "CentOS" or
+    ansible_distribution == "Fedora" or
+    ansible_distribution == "RedHat" or
+    ansible_distribution == "Rocky"
+
+...

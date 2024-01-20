@@ -3,6 +3,13 @@
 - name: ensure tasks run only on selected os releases
   block:
 
+    - name: install gnome
+      ansible.builtin.debug:
+        msg: deploys a minimal gnome desktop setup
+        verbosity: 0
+      delegate_to: localhost
+      run_once: true
+
     - name: install gnome groups
       ansible.builtin.package:
         name: "{{ gnome.groups }}"
@@ -32,24 +39,6 @@
       ansible.builtin.command:
         cmd: "systemctl set-default graphical.target"
       when: cmd_systemd_target.stdout != "graphical.target"
-
-    - name: prevent sleep when laptop lid is closed - on battery
-      ansible.builtin.lineinfile:
-        path: /etc/systemd/logind.conf
-        regexp: '^.*#HandleLidSwitch='
-        line: HandleLidSwitch=ignore
-
-    - name: prevent sleep when laptop lid is closed - on power
-      ansible.builtin.lineinfile:
-        path: /etc/systemd/logind.conf
-        regexp: '^.*#HandleLidSwitchExternalPower='
-        line: HandleLidSwitchExternalPower=ignore
-
-    - name: prevent sleep when laptop lid is closed - when docked
-      ansible.builtin.lineinfile:
-        path: /etc/systemd/logind.conf
-        regexp: '^.*#HandleLidSwitchDocked='
-        line: HandleLidSwitchDocked=ignore
 
   when: >
     ansible_distribution == "CentOS" or
