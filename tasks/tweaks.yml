@@ -3,58 +3,31 @@
 - name: ensure tasks run only on selected os releases
   block:
 
-    - name: laptop lid switch tweak
-      block:
+    - name: prevent sleep when laptop lid is closed - on battery
+      ansible.builtin.lineinfile:
+        path: /etc/systemd/logind.conf
+        regexp: '^.*#HandleLidSwitch='
+        line: HandleLidSwitch=ignore
 
-        - name: ignore laptop lid switch
-          ansible.builtin.debug:
-            msg: |
-              ---------------------------------------------------
-              keeps then laptop alive even when the lid is closed
-              ---------------------------------------------------
-            verbosity: 0
-          delegate_to: localhost
-          run_once: true
+    - name: prevent sleep when laptop lid is closed - on power
+      ansible.builtin.lineinfile:
+        path: /etc/systemd/logind.conf
+        regexp: '^.*#HandleLidSwitchExternalPower='
+        line: HandleLidSwitchExternalPower=ignore
 
-        - name: prevent sleep when laptop lid is closed - on battery
-          ansible.builtin.lineinfile:
-            path: /etc/systemd/logind.conf
-            regexp: '^.*#HandleLidSwitch='
-            line: HandleLidSwitch=ignore
+    - name: prevent sleep when laptop lid is closed - when docked
+      ansible.builtin.lineinfile:
+        path: /etc/systemd/logind.conf
+        regexp: '^.*#HandleLidSwitchDocked='
+        line: HandleLidSwitchDocked=ignore
 
-        - name: prevent sleep when laptop lid is closed - on power
-          ansible.builtin.lineinfile:
-            path: /etc/systemd/logind.conf
-            regexp: '^.*#HandleLidSwitchExternalPower='
-            line: HandleLidSwitchExternalPower=ignore
-
-        - name: prevent sleep when laptop lid is closed - when docked
-          ansible.builtin.lineinfile:
-            path: /etc/systemd/logind.conf
-            regexp: '^.*#HandleLidSwitchDocked='
-            line: HandleLidSwitchDocked=ignore
-
-    - name: graphical enhancements for grub
-      block:
-
-        - name: enhance grub menu
-          ansible.builtin.debug:
-            msg: |
-              -----------------------------------------
-              set a higher resolution for the grub menu
-              -----------------------------------------
-            verbosity: 0
-          delegate_to: localhost
-          run_once: true
-
-        - name: configure grub menu settings
-          ansible.builtin.lineinfile:
-            path: /etc/default/grub
-            regexp: '^.*{{ item.key }}='
-            line: "{{ item.key }}={{ item.value }}"
-            state: present
-          with_items: "{{ grub.menu }}"
-          notify: rebuild grub
+    - name: configure additional grub menu tweaks
+      ansible.builtin.include_role:
+        name: mgmt__grub
+        tasks_from: grub_settings.yml
+      vars:
+        grub_setting: "{{ grub.menu }}"
+        grub_task: configure
 
   when: >
     ansible_distribution == "CentOS" or
