@@ -4,16 +4,6 @@
   block:
 
     - name: install gnome groups
-      ansible.builtin.debug:
-        msg: |
-          ----------------------------
-          install gnome related groups
-          ----------------------------
-        verbosity: 0
-      delegate_to: localhost
-      run_once: true
-
-    - name: install groups
       ansible.builtin.package:
         name: "{{ gnome.groups }}"
         state: latest
@@ -27,30 +17,10 @@
         var: gnome_groups
         verbosity: 1
 
-    - name: install gnome packages
-      ansible.builtin.debug:
-        msg: |
-          ----------------------------
-          install extra gnome pacakges
-          ----------------------------
-        verbosity: 0
-      delegate_to: localhost
-      run_once: true
-
     - name: install packages
       ansible.builtin.package:
         name: "{{ gnome.packages }}"
         state: latest
-
-    - name: graphical boot
-      ansible.builtin.debug:
-        msg: |
-          --------------------------------------
-          set system to boot into graphical mode
-          --------------------------------------
-        verbosity: 0
-      delegate_to: localhost
-      run_once: true
 
     - name: check default systemd target
       ansible.builtin.command:
