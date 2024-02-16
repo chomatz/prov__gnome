@@ -17,7 +17,7 @@
         var: gnome_groups
         verbosity: 1
 
-    - name: install packages
+    - name: install additional packages
       ansible.builtin.package:
         name: "{{ gnome.packages }}"
         state: latest
